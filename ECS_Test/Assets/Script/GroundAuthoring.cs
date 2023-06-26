@@ -18,7 +18,7 @@ public class GroundAuthoring : MonoBehaviour
     {
         public override void Bake(GroundAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.None);
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent(entity, new GroundTag
             {
