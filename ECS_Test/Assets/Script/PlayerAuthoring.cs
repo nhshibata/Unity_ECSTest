@@ -31,6 +31,8 @@ public class PlayerAuthoring : MonoBehaviour
                 Prefab = GetEntity(authoring.gameObject, TransformUsageFlags.Dynamic)
             });
 
+            Debug.Log("•ÏŠ·ˆ—");
+
         }
     }
 }

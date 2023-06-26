@@ -8,18 +8,19 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 /// <summary>
 /// Playerのシステム部分
 /// </summary>
 [BurstCompile]
-public partial struct PlayerSystem : ISystem
+public partial class PlayerSystem : SystemBase
 {
     InputAction move;
     InputAction jump;
     Asset.PlayerInputAction playerInput;
     bool isTryJumped;
 
-    public void OnCreate(ref SystemState state)
+    protected override void OnCreate()
     {
         playerInput = new Asset.PlayerInputAction();
         playerInput.Enable();
@@ -27,15 +28,15 @@ public partial struct PlayerSystem : ISystem
         move = playerInput.Player.Move;
         jump = playerInput.Player.Jump;
     }
-    
-    public void OnDestroy(ref SystemState state)
+
+    protected override void OnDestroy()
     {
         playerInput.Disable();
         playerInput.Dispose();
     }
 
     //[BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    protected override void OnUpdate()
     {
         // 識別から更新処理
         //foreach (var (player, _entity) in SystemAPI.Query<RefRW<PlayerData>>().WithEntityAccess())
@@ -80,16 +81,21 @@ public partial struct PlayerSystem : ISystem
         })
         .ScheduleParallel();
 
-        state.Dependency = new OnGroundJob
-        {
-            _players = state.GetComponentLookup<PlayerData>(),
-            _grounds = state.GetComponentLookup<GroundTag>(),
-        }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
-
         // Jobの発行
-        state.Dependency = new PlayerJob{
+        {
+            Dependency = new OnGroundJob
+            {
+                _players = GetComponentLookup<PlayerData>(),
+                _grounds = GetComponentLookup<GroundTag>(),
+            }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), Dependency);
+        }
 
-        }.Schedule(state.Dependency);
+        {
+            Dependency = new PlayerJob
+            {
+
+            }.Schedule(Dependency);
+        }
 
     }
 }
@@ -135,3 +141,7 @@ public partial struct OnGroundJob : ICollisionEventsJob
         }
     }
 }
+
+
+
+
