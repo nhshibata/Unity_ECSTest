@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
+
 public struct PlayerData : IComponentData
 {
     Entity entity;
@@ -36,3 +37,4 @@ public class PlayerAuthoring : MonoBehaviour
         }
     }
 }
+

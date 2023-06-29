@@ -75,28 +75,37 @@ public partial class PlayerSystem : SystemBase
             _velocity = PhysicsVelocity.CalculateVelocityToTarget(_mass, _transform.Position, _transform.Rotation, _targetTransform, _tickTime);
             if (_velocity.Linear.y != 0)
             {
-                Debug.LogWarning(_velocity.Linear);
+                UnityEngine.Debug.LogWarning("linear not 0");
             }
 
         })
         .ScheduleParallel();
 
-        // Jobの発行
         {
-            Dependency = new OnGroundJob
-            {
-                _players = GetComponentLookup<PlayerData>(),
-                _grounds = GetComponentLookup<GroundTag>(),
-            }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), Dependency);
-        }
+            // コンポーネントの取得と更新
+            var gun = SystemAPI.GetSingleton<CharacterGunInput>();
+            gun.Firing = jump.ReadValue<float>() > 0 ? 1 : 0;
+            SystemAPI.SetSingleton(gun);
+            UnityEngine.Debug.Log("space!" + gun.Firing);
 
-        {
+            // ジョブの発行
             Dependency = new PlayerJob
             {
+                Input = gun,
 
             }.Schedule(Dependency);
         }
 
+        // Jobの発行
+        {
+            Dependency = new OnGroundJob
+            {
+                players = GetComponentLookup<PlayerData>(),
+                grounds = GetComponentLookup<GroundTag>(),
+            }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), Dependency);
+        }
+
+       
     }
 }
 
@@ -106,38 +115,43 @@ public partial class PlayerSystem : SystemBase
 [BurstCompile]
 partial struct PlayerJob : IJobEntity
 {
+    public CharacterGunInput Input;
+    public float shot;
+
     public void Execute(
         [ChunkIndexInQuery] int index, 
         Entity entity,
         ref LocalTransform xform)
     {
-        
-        
 
+        
     }
 
 }
 
 public partial struct OnGroundJob : ICollisionEventsJob
 {
-    public ComponentLookup<PlayerData> _players;
-    public ComponentLookup<GroundTag> _grounds;
+    public ComponentLookup<PlayerData> players;
+    public ComponentLookup<GroundTag> grounds;
 
     public void Execute(CollisionEvent collisionEvent)
     {
-        var _entityAPlayer = _players.HasComponent(collisionEvent.EntityA);
-        var _entityAGround = _grounds.HasComponent(collisionEvent.EntityB);
+        var _entityAPlayer = players.HasComponent(collisionEvent.EntityA);
+        var _entityAGround = grounds.HasComponent(collisionEvent.EntityB);
 
-        var _entityBPlayer = _players.HasComponent(collisionEvent.EntityA);
-        var _entityBGround = _grounds.HasComponent(collisionEvent.EntityB);
+        var _entityBPlayer = players.HasComponent(collisionEvent.EntityA);
+        var _entityBGround = grounds.HasComponent(collisionEvent.EntityB);
 
+        if (_entityBGround | _entityAPlayer | _entityBPlayer | _entityAGround)
+            Debug.Log("衝突判定ON");
+        
         if (_entityBGround && _entityAPlayer)
         {
-            _players.GetRefRWOptional(collisionEvent.EntityA).ValueRW.OnGround = true;
+            players.GetRefRWOptional(collisionEvent.EntityA).ValueRW.OnGround = true;
         }
         else if (_entityBPlayer && _entityAGround)
         {
-            _players.GetRefRWOptional(collisionEvent.EntityB).ValueRW.OnGround = true;
+            players.GetRefRWOptional(collisionEvent.EntityB).ValueRW.OnGround = true;
         }
     }
 }

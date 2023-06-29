@@ -6,12 +6,14 @@ using UnityEngine;
 /// <summary>
 /// 識別用のGround
 /// </summary>
-
 public struct GroundTag : IComponentData
 {
 
 }
 
+/// <summary>
+/// オーサリング
+/// </summary>
 public class GroundAuthoring : MonoBehaviour
 {
     class Baker : Baker<GroundAuthoring>
