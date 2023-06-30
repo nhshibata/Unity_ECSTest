@@ -1,8 +1,9 @@
+using Asset;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 
 public struct PlayerData : IComponentData
 {
@@ -17,7 +18,10 @@ public struct PlayerData : IComponentData
 
 public class PlayerAuthoring : MonoBehaviour
 {
-
+    private void OnDestroy()
+    {
+        
+    }
 
     class Baker : Baker<PlayerAuthoring>
     {

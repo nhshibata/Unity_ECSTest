@@ -5,16 +5,20 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 
 /// <summary>
 /// Playerのシステム部分
+/// ISystemでは参照を持つことが出来ない
 /// </summary>
 [BurstCompile]
+[RequireMatchingQueriesForUpdate]
 public partial class PlayerSystem : SystemBase
 {
+    
     InputAction move;
     InputAction jump;
     Asset.PlayerInputAction playerInput;
@@ -22,6 +26,9 @@ public partial class PlayerSystem : SystemBase
 
     protected override void OnCreate()
     {
+        // 存在しなければ処理しない
+        base.RequireForUpdate<CharacterGunInput>();
+
         playerInput = new Asset.PlayerInputAction();
         playerInput.Enable();
 
@@ -84,6 +91,8 @@ public partial class PlayerSystem : SystemBase
         {
             // コンポーネントの取得と更新
             var gun = SystemAPI.GetSingleton<CharacterGunInput>();
+            if (gun.IsUnityNull())
+                return;
             gun.Firing = jump.ReadValue<float>() > 0 ? 1 : 0;
             SystemAPI.SetSingleton(gun);
             UnityEngine.Debug.Log("space!" + gun.Firing);
@@ -137,9 +146,9 @@ public partial struct OnGroundJob : ICollisionEventsJob
     public void Execute(CollisionEvent collisionEvent)
     {
         var _entityAPlayer = players.HasComponent(collisionEvent.EntityA);
-        var _entityAGround = grounds.HasComponent(collisionEvent.EntityB);
+        var _entityBPlayer = players.HasComponent(collisionEvent.EntityB);
 
-        var _entityBPlayer = players.HasComponent(collisionEvent.EntityA);
+        var _entityAGround = grounds.HasComponent(collisionEvent.EntityA);
         var _entityBGround = grounds.HasComponent(collisionEvent.EntityB);
 
         if (_entityBGround | _entityAPlayer | _entityBPlayer | _entityAGround)

@@ -54,8 +54,8 @@ public class SpawnAuthoring : MonoBehaviour
             AddComponent(entity, new SpawnSettings
             {
                 Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic),
-                Position = authoring.transform.position,
-                Rotation = authoring.transform.rotation,
+                Position = authoring.Prefab.transform.position,
+                Rotation = authoring.Prefab.transform.rotation,
                 Count = authoring.NCount,
                 Range = authoring.FRange,
                 RandomSeedOffset = authoring.NRandomSeedOffset,

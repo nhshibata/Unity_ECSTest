@@ -33,16 +33,29 @@ public partial struct GunInputSystem : ISystem
     //    playerInput.Disable();
     //    playerInput.Dispose();
     //}
+    
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        // 指定したコンポーネントがなければ実行しない
+        state.RequireForUpdate<CharacterGunInput>();
+    }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var ecb = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
            .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
-        
+
         // 一つしかないため、Singletonで取得
         var gun = SystemAPI.GetSingleton<CharacterGunInput>();
-        
+
+        //foreach (var (gund, transform) in
+        //            SystemAPI.Query<RefRW<CharacterGunInput>, RefRW<LocalTransform>>())
+        //{
+            
+        //}
+
         // ジョブの発行
         new GunInputJob
         {
@@ -85,7 +98,6 @@ partial struct GunInputJob : IJobEntity
         {
             gun.Duration = 0;
             gun.WasFiring = 0;
-            UnityEngine.Debug.Log("1のまま");
             return;
         }
 
