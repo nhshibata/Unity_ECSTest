@@ -103,6 +103,54 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "GameState",
+            "id": "52cb3eae-bd2c-44e2-b9ac-e4aa97718be7",
+            "actions": [
+                {
+                    "name": "ESC",
+                    "type": "Button",
+                    "id": "93927ba5-59c8-40af-9e3c-63bcab5115fc",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "c9dff6ca-c558-4b7a-9d05-9df3c7b269f0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "50956d73-0677-4e03-9631-6128c7bdfb06",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ESC",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "308c9c4d-7f2e-44ce-a002-05c9322ca475",
+                    "path": "<Keyboard>/backspace",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

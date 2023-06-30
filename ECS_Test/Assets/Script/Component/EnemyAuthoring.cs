@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-
+/// <summary>
+/// ƒ^ƒO‚Æ‚µ‚Ä‚àˆµ‚¤?
+/// </summary>
 [Serializable]
 partial struct EnemyData : IComponentData
 {

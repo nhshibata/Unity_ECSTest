@@ -127,6 +127,54 @@ namespace Asset
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""GameState"",
+            ""id"": ""52cb3eae-bd2c-44e2-b9ac-e4aa97718be7"",
+            ""actions"": [
+                {
+                    ""name"": ""ESC"",
+                    ""type"": ""Button"",
+                    ""id"": ""93927ba5-59c8-40af-9e3c-63bcab5115fc"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Menu"",
+                    ""type"": ""Button"",
+                    ""id"": ""c9dff6ca-c558-4b7a-9d05-9df3c7b269f0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""50956d73-0677-4e03-9631-6128c7bdfb06"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ESC"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""308c9c4d-7f2e-44ce-a002-05c9322ca475"",
+                    ""path"": ""<Keyboard>/backspace"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Menu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -135,6 +183,10 @@ namespace Asset
             m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
             m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
+            // GameState
+            m_GameState = asset.FindActionMap("GameState", throwIfNotFound: true);
+            m_GameState_ESC = m_GameState.FindAction("ESC", throwIfNotFound: true);
+            m_GameState_Menu = m_GameState.FindAction("Menu", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -246,10 +298,69 @@ namespace Asset
             }
         }
         public PlayerActions @Player => new PlayerActions(this);
+
+        // GameState
+        private readonly InputActionMap m_GameState;
+        private List<IGameStateActions> m_GameStateActionsCallbackInterfaces = new List<IGameStateActions>();
+        private readonly InputAction m_GameState_ESC;
+        private readonly InputAction m_GameState_Menu;
+        public struct GameStateActions
+        {
+            private @PlayerInputAction m_Wrapper;
+            public GameStateActions(@PlayerInputAction wrapper) { m_Wrapper = wrapper; }
+            public InputAction @ESC => m_Wrapper.m_GameState_ESC;
+            public InputAction @Menu => m_Wrapper.m_GameState_Menu;
+            public InputActionMap Get() { return m_Wrapper.m_GameState; }
+            public void Enable() { Get().Enable(); }
+            public void Disable() { Get().Disable(); }
+            public bool enabled => Get().enabled;
+            public static implicit operator InputActionMap(GameStateActions set) { return set.Get(); }
+            public void AddCallbacks(IGameStateActions instance)
+            {
+                if (instance == null || m_Wrapper.m_GameStateActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_GameStateActionsCallbackInterfaces.Add(instance);
+                @ESC.started += instance.OnESC;
+                @ESC.performed += instance.OnESC;
+                @ESC.canceled += instance.OnESC;
+                @Menu.started += instance.OnMenu;
+                @Menu.performed += instance.OnMenu;
+                @Menu.canceled += instance.OnMenu;
+            }
+
+            private void UnregisterCallbacks(IGameStateActions instance)
+            {
+                @ESC.started -= instance.OnESC;
+                @ESC.performed -= instance.OnESC;
+                @ESC.canceled -= instance.OnESC;
+                @Menu.started -= instance.OnMenu;
+                @Menu.performed -= instance.OnMenu;
+                @Menu.canceled -= instance.OnMenu;
+            }
+
+            public void RemoveCallbacks(IGameStateActions instance)
+            {
+                if (m_Wrapper.m_GameStateActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            public void SetCallbacks(IGameStateActions instance)
+            {
+                foreach (var item in m_Wrapper.m_GameStateActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_GameStateActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        public GameStateActions @GameState => new GameStateActions(this);
         public interface IPlayerActions
         {
             void OnMove(InputAction.CallbackContext context);
             void OnJump(InputAction.CallbackContext context);
+        }
+        public interface IGameStateActions
+        {
+            void OnESC(InputAction.CallbackContext context);
+            void OnMenu(InputAction.CallbackContext context);
         }
     }
 }
