@@ -11,19 +11,26 @@ public struct CharacterGun : IComponentData
     public float Rate;
     public float Duration;
 
-    public int WasFiring;
-    public int IsFiring;
+    private int nWasFiring;
+    private int nIsFiring;
+
+    public int WasFiring { get => nWasFiring; set => nWasFiring = value; }
+
+    public int IsFiring { get => nIsFiring; set => nIsFiring = value; }
 }
 
 public struct CharacterGunInput : IComponentData
 {
-    public float2 Looking;
-    public float Firing;
+    private float2 vLooking;
+    private float fFiring;
+
+    public float2 Looking { get => vLooking; set => vLooking = value; }
+    public float Firing { get => fFiring; set => fFiring = value; }
 }
 
 public class CharacterGunAuthoring : MonoBehaviour
 {
-    public GameObject Bullet;
+    public GameObject pPrefabBullet;
 
     public float Strength;
     public float Rate;
@@ -33,10 +40,11 @@ public class CharacterGunAuthoring : MonoBehaviour
         public override void Bake(CharacterGunAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
+
             // èeÇÃíËã`
             AddComponent(entity, new CharacterGun()
             {
-                Bullet = GetEntity(authoring.Bullet, TransformUsageFlags.Dynamic),
+                Bullet = GetEntity(authoring.pPrefabBullet, TransformUsageFlags.Dynamic),
                 Strength = authoring.Strength,
                 Rate = authoring.Rate,
                 WasFiring = 0,
@@ -49,6 +57,7 @@ public class CharacterGunAuthoring : MonoBehaviour
                 Looking = float2.zero,
                 Firing = 0.0f
             });
+
         }
     }
 }

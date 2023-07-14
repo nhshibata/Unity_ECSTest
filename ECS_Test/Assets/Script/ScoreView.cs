@@ -6,44 +6,49 @@ using UnityEngine.UI;
 
 /// <summary>
 /// ポイント表示更新用
+/// リザルトにも使用
 /// </summary>
+
+//[RequireComponent(typeof(Text))]
 public class ScoreView : MonoBehaviour
 {
-    int destPoint;  // 目標値
-    int dispPoint;  // 表示値
-    Text text = null;
+    int nDispPoint = 0;  // 表示値
+    Text pText = null;
 
-    int DispPoint { get => dispPoint; 
+    int DispPoint { 
+        get => nDispPoint; 
         set
         {
-            dispPoint = value;
+            nDispPoint = value;
             // 表示数の変更
-            text.text = dispPoint.ToString();
+            pText.text = nDispPoint.ToString();
         }
      }
 
     // Start is called before the first frame update
     void Start()
     {
-        // 1が入っていれば異常
-        destPoint = PlayerPrefs.GetInt("Point", 1);
-
         // Textにアタッチしているはず
-        text = GetComponent<Text>();
+        pText = GetComponent<Text>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(DispPoint > destPoint)
+        // 1が入っていれば異常
+        int destPoint = PlayerPrefs.GetInt("Point", 1);
+
+        if (DispPoint > destPoint)
         {
             DispPoint = destPoint;
         }
         else
         {
             int dist = destPoint - DispPoint;
+            dist = dist / (60 * 5);
+
             // 表示の変更
-            DispPoint = dist / (60 * 5);
+            DispPoint = DispPoint + dist;
         }
     }
 

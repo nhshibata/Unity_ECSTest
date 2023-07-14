@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// ゲームに必要な情報をまとめる
+/// ゲーム終了処理を行う
 /// 全てのシーンにあること前提
 /// </summary>
 public class GameManager : MonoBehaviour
@@ -74,7 +75,7 @@ public class GameManager : MonoBehaviour
         }
 
         // ゲーム時処理
-        PlayTime.DelTime(Time.deltaTime);
+        PlayTime.DecTime(Time.deltaTime);
 
         if(!playTime.IsPlaying())
         {

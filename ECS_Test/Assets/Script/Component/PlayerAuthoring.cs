@@ -5,17 +5,24 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// プレイヤーがゲームに必要なデータを定義した構造体
+/// </summary>
 public struct PlayerData : IComponentData
 {
-    Entity entity;
-    bool isJump;
-    bool onGround;
+    Entity entity;          // 
+    bool isJump;            // ジャンプ管理
+    bool onGround;          // 地面管理
 
+    // プロパティ
     public Entity Prefab { get => entity; set => entity = value; }
     public bool IsJump { get => isJump; set => isJump = value; }
     public bool OnGround { get => onGround; set => onGround = value; }
 }
 
+/// <summary>
+/// Entityの変換を行う
+/// </summary>
 public class PlayerAuthoring : MonoBehaviour
 {
     private void OnDestroy()
