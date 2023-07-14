@@ -18,7 +18,8 @@ using UnityEngine.InputSystem;
 [RequireMatchingQueriesForUpdate]
 public partial class PlayerSystem : SystemBase
 {
-    
+    readonly float JUMP_FORCE = 100.0f;
+
     InputAction move;
     InputAction jump;
     Asset.PlayerInputAction playerInput;
@@ -29,9 +30,11 @@ public partial class PlayerSystem : SystemBase
         // 存在しなければ処理しない
         base.RequireForUpdate<CharacterGunInput>();
 
+        // 入力の受付を取得
         playerInput = new Asset.PlayerInputAction();
         playerInput.Enable();
 
+        // 参照を保存
         move = playerInput.Player.Move;
         jump = playerInput.Player.Jump;
     }
@@ -45,17 +48,13 @@ public partial class PlayerSystem : SystemBase
     //[BurstCompile]
     protected override void OnUpdate()
     {
-        // 識別から更新処理
-        //foreach (var (player, _entity) in SystemAPI.Query<RefRW<PlayerData>>().WithEntityAccess())
-        //{
-        //    player.ValueRW.IsJump = false;
-        //}
+        Vector2 moveValue = move.ReadValue<Vector2>();
 
-        Vector2 _input = move.ReadValue<Vector2>();
+        // 使用変数
+        var deltaTime = UnityEngine.Time.deltaTime;
+        var tickTime = 1f / deltaTime;
+        var jumpForce = 0.0f;
 
-        var _deltaTime = UnityEngine.Time.deltaTime;
-        var _tickTime = 1f / _deltaTime;
-        var _jumpForce = 0.0f;
         //ForEachの中ではフィールドは呼び出せないらしいので、ここで呼び出す。
         bool _isPushJumpKey = false;
         //処理に時間かかるのか、ダブルジャンプが出来てしまっていたので無理やり修正
@@ -72,14 +71,15 @@ public partial class PlayerSystem : SystemBase
         Entities
         .WithAll<PlayerData>()
         .ForEach((ref PhysicsVelocity _velocity, ref PhysicsMass _mass, ref LocalTransform _transform, ref PlayerData _player) => {
+            // ジャンプ確認
             if (_isPushJumpKey && _player.OnGround)
             {
-                _jumpForce = 100.0f;
+                jumpForce = JUMP_FORCE;
                 _player.OnGround = false;
             }
-            var _movement = new float3(_input.x, _jumpForce, _input.y);
-            var _targetTransform = new RigidTransform(_transform.Rotation, (_movement * 2 * _deltaTime) + _transform.Position);
-            _velocity = PhysicsVelocity.CalculateVelocityToTarget(_mass, _transform.Position, _transform.Rotation, _targetTransform, _tickTime);
+            var _movement = new float3(moveValue.x, jumpForce, moveValue.y);
+            var _targetTransform = new RigidTransform(_transform.Rotation, (_movement * 2 * deltaTime) + _transform.Position);
+            _velocity = PhysicsVelocity.CalculateVelocityToTarget(_mass, _transform.Position, _transform.Rotation, _targetTransform, tickTime);
             if (_velocity.Linear.y != 0)
             {
                 UnityEngine.Debug.LogWarning("linear not 0");
@@ -88,16 +88,20 @@ public partial class PlayerSystem : SystemBase
         })
         .ScheduleParallel();
 
+        // 弾発射の確認
         {
             // コンポーネントの取得と更新
             var gun = SystemAPI.GetSingleton<CharacterGunInput>();
+
+            // 存在するか
             if (gun.IsUnityNull())
                 return;
+            // 反映させる
             gun.Firing = jump.ReadValue<float>() > 0 ? 1 : 0;
             SystemAPI.SetSingleton(gun);
             UnityEngine.Debug.Log("space!" + gun.Firing);
 
-            // ジョブの発行
+            // jobの発行
             Dependency = new PlayerJob
             {
                 Input = gun,
@@ -138,6 +142,9 @@ partial struct PlayerJob : IJobEntity
 
 }
 
+/// <summary>
+/// 地面との当たり判定を行うjob
+/// </summary>
 public partial struct OnGroundJob : ICollisionEventsJob
 {
     public ComponentLookup<PlayerData> players;

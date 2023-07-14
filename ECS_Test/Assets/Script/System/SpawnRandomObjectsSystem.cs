@@ -7,6 +7,7 @@ using Unity.Transforms;
 
 /// <summary>
 /// GitHubのEntityComponentSystemSamplesを参考に作成
+/// SpawSettingsを生成する
 /// </summary>
 public partial class SpawnCubeSystem : SpawnRandomObjectsSystem<SpawnSettings>
 {
@@ -58,7 +59,6 @@ public partial class SpawnRandomObjectsSystem<T> : SystemBase where T : unmanage
                     transform.Rotation = rotations[i];
                     EntityManager.SetComponentData(instance, transform);
 
-
                     //ConfigureInstance(instance, ref spawnSettings);
                 }
 
@@ -73,7 +73,7 @@ public partial class SpawnRandomObjectsSystem<T> : SystemBase where T : unmanage
          ref NativeArray<float3> positions, ref NativeArray<quaternion> rotations, int seed = 0)
     {
         var count = positions.Length;
-        // initialize the seed of the random number generator
+
         var random = Random.CreateFromIndex((uint)seed);
         for (int i = 0; i < count; i++)
         {

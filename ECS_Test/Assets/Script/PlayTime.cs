@@ -1,5 +1,7 @@
+
 /// <summary>
 /// ƒQ[ƒ€ƒvƒŒƒCŠÔŠÇ—
+/// floatŒ^‚Ìtime‚ğŠ
 /// </summary>
 public class PlayTime
 {
@@ -12,8 +14,13 @@ public class PlayTime
         return time > 0.0f;
     }
 
-    public void DelTime(float deltaTime)
+    public void DecTime(float deltaTime)
     {
         time -= deltaTime;
+    }
+
+    public void AddTime(float add)
+    {
+        time += Time;
     }
 }

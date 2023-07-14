@@ -2,6 +2,11 @@
 using Unity.Entities;
 using UnityEngine;
 
+
+
+/// <summary>
+/// 弾のデータ
+/// </summary>
 [Serializable]
 partial struct BulletData : IComponentData
 {
@@ -12,6 +17,9 @@ partial struct BulletData : IComponentData
     public float LimitTime { get => limitTime; set => limitTime = value; }
 }
 
+/// <summary>
+/// オーサリング処理
+/// </summary>
 public class BulletAuthoring : MonoBehaviour
 {
     [SerializeField]float BulletSpeed = 1;
@@ -30,3 +38,4 @@ public class BulletAuthoring : MonoBehaviour
         }
     }
 }
+

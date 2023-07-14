@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -10,6 +11,10 @@ using Unity.VisualScripting;
 using UnityEngine;
 using TriggerEvent = Unity.Physics.TriggerEvent;
 
+/// <summary>
+/// 複数の当たり判定のjobの発行を行う
+/// 弾と敵のjobの発行も行う
+/// </summary>
 [BurstCompile]
 public partial struct CollisionSystem : ISystem
 {
@@ -33,6 +38,7 @@ public partial struct CollisionSystem : ISystem
         float deltaTime = SystemAPI.Time.DeltaTime;
 
         // ジョブの発行
+        // ItemとEnemy振る舞いの発行
         new ItemJob
         {
             deltaTime = deltaTime,
@@ -52,17 +58,55 @@ public partial struct CollisionSystem : ISystem
             players = player
         }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
 
+        //========================================================
+        // particleシステムの取得
+        //========================================================
+        UnityEngine.ParticleSystem pss = null;
+#if true
+        // 取得方法1
+        // エンティティのクエリングとコンポーネントの取得が明示的に分かれています。
+        // エンティティクエリを作成し、エンティティの配列を取得してループで処理する必要があります。
+        // コンポーネントを直接参照できるため、操作が直感的です。
+        EntityQuery query = state.World.EntityManager.CreateEntityQuery(typeof(ParticleTag));
+        NativeArray<Entity> entities = query.ToEntityArray(Allocator.TempJob);
+        foreach (Entity entity in entities)
+        {
+            // エンティティの処理
+            pss = state.World.EntityManager.GetComponentObject<UnityEngine.ParticleSystem>(entity);
+            break;
+        }
+        // 忘れずに解放
+        entities.Dispose();
+#else
+        // 取得方法2
+        // SystemAPI.Queryメソッドを使用することで、エンティティとコンポーネントを同時に取得できます。
+        // WithAll<ParticleTag>()メソッドを使用して特定のタグを持つエンティティを絞り込むことができます。
+        // ジョブシステムによる並列処理に適しています。
+        foreach (var ps in SystemAPI.Query<SystemAPI.ManagedAPI.UnityEngineComponent<UnityEngine.ParticleSystem>>().WithAll<ParticleTag>())
+        {
+            pss = ps.Value;
+            break;
+        }
+#endif
+        // エンティティの数が少なく、直感的な操作が必要な場合：方法1を使用
+        // エンティティの数が多く、ジョブシステムによる並列処理が必要な場合：方法2を使用
         state.Dependency = new EnemyAndBulletHitJob
         {
             enemys = enemy,
-            bullets = bullet
+            bullets = bullet,
+            ECB = ecb,
+            particleSystem = pss
         }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
+        //========================================================
+
 
         state.Dependency = new ItemAndPlayerHitJob
         {
             players = player,
             items = item
         }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
+        
+        
     }
 }
 
@@ -171,7 +215,9 @@ partial struct EnemyAndBulletHitJob : ITriggerEventsJob
 {
     public ComponentLookup<BulletData> bullets;
     public ComponentLookup<EnemyData> enemys;
-    //ComponentLookup<Bull> enemys;
+    public EntityCommandBuffer.ParallelWriter ECB;
+    public EntityManager entityMgr;
+    public UnityEngine.ParticleSystem particleSystem;
 
     [BurstCompile]
     public void Execute(TriggerEvent collisionEvent)
@@ -206,7 +252,14 @@ partial struct EnemyAndBulletHitJob : ITriggerEventsJob
     {
         //bullets[playerID];
         //enemys[enemyID];
+        
+        ECB.DestroyEntity(bulletID.Index, bulletID);
+        ECB.DestroyEntity(enemyID.Index, enemyID);
+
+        // エフェクト再生
+        particleSystem.Play();
     }
+
 }
 
 /// <summary>
@@ -229,8 +282,8 @@ partial struct ItemAndPlayerHitJob : ITriggerEventsJob
 
         if (isPlayer && isItem)
         {
-            HitEvent(collisionEvent.EntityA, collisionEvent.EntityB);
             // 接触時
+            HitEvent(collisionEvent.EntityA, collisionEvent.EntityB);
             return;
         }
 
@@ -246,4 +299,5 @@ partial struct ItemAndPlayerHitJob : ITriggerEventsJob
     {
 
     }
+
 }
